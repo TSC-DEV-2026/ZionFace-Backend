@@ -1,0 +1,91 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+*.so
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.coverage
+htmlcov/
+dist/
+build/
+pip-wheel-metadata/
+*.log
+
+# =========================
+# Virtual env
+# =========================
+.venv/
+venv/
+env/
+ENV/
+
+# =========================
+# Environment files
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# IDEs / Editors
+# =========================
+.vscode/
+.idea/
+*.iml
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# =========================
+# Windows / Python Launcher
+# =========================
+*.exe
+*.dll
+*.msi
+
+# =========================
+# Uvicorn / FastAPI runtime
+# =========================
+*.pid
+
+# =========================
+# Logs / runtime output
+# =========================
+logs/
+*.out
+
+# =========================
+# Database / local artifacts
+# =========================
+*.sqlite3
+*.db
+
+# =========================
+# ML / Models / Large files
+# (se você quiser versionar modelos, remova essas linhas)
+# =========================
+models/*.onnx
+models/*.pth
+models/*.pt
+models/*.tflite
+models/*.pb
+
+# =========================
+# Uploads / Temp
+# =========================
+uploads/
+tmp/
+temp/
