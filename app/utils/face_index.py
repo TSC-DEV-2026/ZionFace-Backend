@@ -1,14 +1,13 @@
 import json
-import os
 import threading
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-import numpy as np
 import faiss
+import numpy as np
 
-from .settings import settings
+from app.core.settings import settings
 
 
 @dataclass
@@ -59,6 +58,7 @@ class FaceIndex:
         for user_dir in banco_dir.iterdir():
             if not user_dir.is_dir():
                 continue
+
             ref_path = user_dir / "ref.embedding.json"
             if not ref_path.exists():
                 continue
@@ -84,15 +84,9 @@ class FaceIndex:
                     continue
 
                 vectors.append(v)
-                metas.append(
-                    {
-                        "user_id": user_id,
-                        "ref_index": int(i),
-                        "path": str(ref_path),
-                    }
-                )
+                metas.append({"user_id": user_id, "ref_index": int(i), "path": str(ref_path)})
 
-        if len(vectors) == 0:
+        if not vectors:
             with self._lock:
                 self._index = None
                 self._meta = []
@@ -135,6 +129,7 @@ class FaceIndex:
                     v = np.asarray(emb, dtype=np.float32).reshape(-1)
                     if v.shape[0] != 512:
                         continue
+
                     new_vecs.append(v)
                     self._meta.append(
                         {
@@ -152,6 +147,7 @@ class FaceIndex:
             m = np.vstack(new_vecs).astype(np.float32)
             faiss.normalize_L2(m)
             self._index.add(m)
+
             self._total_embeddings = len(self._meta)
             self._total_users = len({x["user_id"] for x in self._meta})
 
@@ -159,8 +155,10 @@ class FaceIndex:
         with self._lock:
             if not self._ready or self._index is None:
                 raise RuntimeError("Índice 1:N não está pronto")
+
             q = embedding_512.astype(np.float32).reshape(1, -1)
             faiss.normalize_L2(q)
+
             sims, idxs = self._index.search(q, int(top_k))
             return sims.reshape(-1), idxs.reshape(-1)
 
