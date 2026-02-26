@@ -1,4 +1,4 @@
-fastapi>=0.110
+fastapi[standard]
 uvicorn[standard]>=0.27
 python-multipart>=0.0.9
 SQLAlchemy>=2.0
@@ -10,6 +10,6 @@ python-jose[cryptography]>=3.3
 passlib[bcrypt]>=1.7
 numpy>=1.26
 pillow>=10.0
-opencv-python>=4.8
+opencv-python-headless>=4.8
 onnxruntime>=1.17
 requests>=2.31

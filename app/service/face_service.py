@@ -8,7 +8,11 @@ import numpy as np
 import cv2
 from PIL import Image
 
-import onnxruntime as ort
+try:
+    import onnxruntime as ort
+except Exception as e:
+    ort = None
+    _ORT_IMPORT_ERROR = str(e)
 
 
 @dataclass
@@ -21,7 +25,7 @@ class FaceConfig:
 class FaceService:
     def __init__(self, cfg: FaceConfig):
         self.cfg = cfg
-        self.session: Optional[ort.InferenceSession] = None
+        self.session: Optional[object] = None
         self.input_name: Optional[str] = None
         self.detector = cv2.CascadeClassifier(
             cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
@@ -30,6 +34,9 @@ class FaceService:
     def _ensure_loaded(self) -> None:
         if self.session is not None:
             return
+
+        if ort is None:
+            raise RuntimeError(f"onnxruntime indisponível neste ambiente: {_ORT_IMPORT_ERROR}")
 
         if not os.path.exists(self.cfg.model_path):
             raise RuntimeError(f"Modelo ONNX não encontrado: {self.cfg.model_path}")
@@ -56,7 +63,6 @@ class FaceService:
         if len(faces) == 0:
             raise ValueError("Nenhum rosto detectado")
 
-        # pega o maior
         x, y, w, h = sorted(faces, key=lambda r: r[2] * r[3], reverse=True)[0]
 
         pad = int(0.15 * max(w, h))
@@ -71,9 +77,8 @@ class FaceService:
         face = cv2.resize(face_bgr, self.cfg.input_size, interpolation=cv2.INTER_AREA)
         face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
 
-        # (H,W,C) -> (1,C,H,W)
         x = face.astype(np.float32)
-        x = (x - 127.5) / 128.0  # normalização típica arcface
+        x = (x - 127.5) / 128.0
         x = np.transpose(x, (2, 0, 1))
         x = np.expand_dims(x, axis=0)
         return x
@@ -88,7 +93,6 @@ class FaceService:
         out = self.session.run(None, {self.input_name: inp})[0]
         emb = out[0].astype(np.float32)
 
-        # normaliza
         norm = np.linalg.norm(emb) + 1e-12
         return emb / norm
 
