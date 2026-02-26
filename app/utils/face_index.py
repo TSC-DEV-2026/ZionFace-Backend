@@ -4,7 +4,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-import faiss
+try:
+    import faiss  # type: ignore
+except Exception as e:  # pragma: no cover
+    faiss = None
+    _FAISS_IMPORT_ERROR = str(e)
 import numpy as np
 
 from app.core.settings import settings
@@ -48,6 +52,8 @@ class FaceIndex:
         self.rebuild()
 
     def rebuild(self) -> IndexStatus:
+        if faiss is None:
+            raise RuntimeError(f"faiss indisponível neste ambiente: {_FAISS_IMPORT_ERROR}")
         banco_dir = Path(settings.banco_fotos_dir)
         banco_dir.mkdir(parents=True, exist_ok=True)
 
@@ -119,9 +125,21 @@ class FaceIndex:
         if not embeddings:
             return
 
+        if faiss is None:
+            return
+
         with self._lock:
             if not self._ready or self._index is None:
                 return
+
+            # garante ref_index monotônico por usuário (útil para debug / rastreio)
+            current_max = -1
+            for m in self._meta:
+                if m.get("user_id") == str(user_id):
+                    try:
+                        current_max = max(current_max, int(m.get("ref_index", -1)))
+                    except Exception:
+                        pass
 
             new_vecs: List[np.ndarray] = []
             for i, emb in enumerate(embeddings):
@@ -134,7 +152,7 @@ class FaceIndex:
                     self._meta.append(
                         {
                             "user_id": str(user_id),
-                            "ref_index": int(i),
+                            "ref_index": int(current_max + 1 + i),
                             "path": str(Path(settings.banco_fotos_dir) / str(user_id) / "ref.embedding.json"),
                         }
                     )
@@ -152,6 +170,8 @@ class FaceIndex:
             self._total_users = len({x["user_id"] for x in self._meta})
 
     def search(self, embedding_512: np.ndarray, top_k: int) -> Tuple[np.ndarray, np.ndarray]:
+        if faiss is None:
+            raise RuntimeError(f"faiss indisponível neste ambiente: {_FAISS_IMPORT_ERROR}")
         with self._lock:
             if not self._ready or self._index is None:
                 raise RuntimeError("Índice 1:N não está pronto")
