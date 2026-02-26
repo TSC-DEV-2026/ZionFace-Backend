@@ -89,3 +89,8 @@ models/*.pb
 uploads/
 tmp/
 temp/
+temp/
+
+
+app/models/
+*.onnx
