@@ -279,4 +279,4 @@ def identify_1toN(selfie_bytes: bytes, top_k: Optional[int] = None) -> IdentifyR
         path="ann_reject",
         model=settings.model_name,
         metric=settings.distance_metric,
-    )
+        )
