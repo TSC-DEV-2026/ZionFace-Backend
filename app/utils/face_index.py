@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-import faiss
 try:
     import faiss  # type: ignore
 except Exception as e:  # pragma: no cover
@@ -125,6 +124,7 @@ class FaceIndex:
     def add_embeddings(self, user_id: str, embeddings: List[List[float]]) -> None:
         if not embeddings:
             return
+
         if faiss is None:
             return
 
@@ -140,6 +140,7 @@ class FaceIndex:
                         current_max = max(current_max, int(m.get("ref_index", -1)))
                     except Exception:
                         pass
+
             new_vecs: List[np.ndarray] = []
             for i, emb in enumerate(embeddings):
                 try:
@@ -151,7 +152,6 @@ class FaceIndex:
                     self._meta.append(
                         {
                             "user_id": str(user_id),
-                            "ref_index": int(i),
                             "ref_index": int(current_max + 1 + i),
                             "path": str(Path(settings.banco_fotos_dir) / str(user_id) / "ref.embedding.json"),
                         }

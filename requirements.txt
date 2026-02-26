@@ -13,3 +13,4 @@ pillow>=10.0
 opencv-python-headless>=4.8
 onnxruntime>=1.17
 requests>=2.31
+PyJWT[standard]

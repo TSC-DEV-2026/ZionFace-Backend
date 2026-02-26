@@ -17,7 +17,6 @@ except Exception as e:
 
 @dataclass
 class FaceConfig:
-    model_path: str = os.path.join("models", "arcface.onnx")
     # Prioriza o modelo dentro do pacote (app/models). Mantém fallback para "models/arcface.onnx".
     model_path: str = os.path.join("app", "models", "arcface_w600k_r50.onnx")
     input_size: Tuple[int, int] = (112, 112)  # ArcFace padrão
@@ -39,10 +38,7 @@ class FaceService:
 
         if ort is None:
             raise RuntimeError(f"onnxruntime indisponível neste ambiente: {_ORT_IMPORT_ERROR}")
-        if not os.path.exists(self.cfg.model_path):
-            raise RuntimeError(f"Modelo ONNX não encontrado: {self.cfg.model_path}")
 
-        self.session = ort.InferenceSession(self.cfg.model_path, providers=["CPUExecutionProvider"])
         model_path = self.cfg.model_path
         if not os.path.exists(model_path):
             # fallback compat: alguns ambientes mantêm o modelo fora do pacote
@@ -66,6 +62,7 @@ class FaceService:
         img = Image.open(io.BytesIO(raw)).convert("RGB")
         rgb = np.array(img)
         return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+
     @staticmethod
     def _bytes_to_bgr(image_bytes: bytes) -> np.ndarray:
         arr = np.frombuffer(image_bytes, np.uint8)

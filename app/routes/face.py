@@ -1,7 +1,3 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
-
-from app.service.face_service import get_face_service
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field
 
@@ -22,28 +18,25 @@ def health():
     return {"ok": True}
 
 
-@router.post("/verify")
-def verify(payload: VerifyPayload):
-    @router.post("/verify/base64")
-    def verify_base64(payload: VerifyPayload):
-        try:
-            svc = get_face_service()
-            return svc.verify_1to1(payload.img1_base64, payload.img2_base64)
+@router.post("/verify/base64")
+def verify_base64(payload: VerifyPayload):
+    try:
+        svc = get_face_service()
+        return svc.verify_1to1(payload.img1_base64, payload.img2_base64)
 
-        except RuntimeError as e:
-            # Ex.: onnxruntime indisponível neste ambiente / modelo não encontrado
-            msg = str(e).lower()
-            if "onnxruntime" in msg or "modelo onnx" in msg:
-                raise HTTPException(status_code=501, detail=str(e))
-            raise HTTPException(status_code=500, detail=str(e))
+    except RuntimeError as e:
+        # Ex.: onnxruntime indisponível neste ambiente / modelo não encontrado
+        msg = str(e).lower()
+        if "onnxruntime" in msg or "modelo onnx" in msg:
+            raise HTTPException(status_code=501, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
-        except ValueError as e:
-            # Ex.: "Nenhum rosto detectado"
-            raise HTTPException(status_code=400, detail=str(e))
+    except ValueError as e:
+        # Ex.: "Nenhum rosto detectado"
+        raise HTTPException(status_code=400, detail=str(e))
 
-        except Exception:
-            raise HTTPException(status_code=500, detail="Erro interno no reconhecimento facial")
-            raise HTTPException(status_code=500, detail="Erro interno no reconhecimento facial")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Erro interno no reconhecimento facial")
 
 
 @router.post("/enroll/{user_id}")
