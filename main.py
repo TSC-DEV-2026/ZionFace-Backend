@@ -22,7 +22,12 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     def on_startup() -> None:
-        warmup()
+        try:
+            warmup()
+        except Exception as e:
+            # Em dev/local (Windows) o onnxruntime pode falhar.
+            # Não derruba a API; apenas registra.
+            print(f"[startup] warmup face skipped: {e}")
 
     return app
 
